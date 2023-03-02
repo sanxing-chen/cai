@@ -19,3 +19,8 @@ Only tested on macOS, with
 - Python 3.8
 - sqlite3
 - openai
+
+# Alfred Demo
+With a simple Alfred Workflow (Keyword -> Run Script) set up, you can do this
+
+https://user-images.githubusercontent.com/18565449/222528490-68269587-ee49-45a9-97bd-2256e60c169f.mov
