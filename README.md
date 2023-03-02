@@ -13,6 +13,20 @@ $ ./run.sh search "Best resorts in the world"
 $ ./run.sh revise
 ```
 
+It keeps a local copy of all the conversations in a sqlite3 database.
+
+You can view bill in hour, day, week, month, and all time.
+    
+```bash
+$ python chatgpt.py --mode bill
+```
+
+You can export the database to csv files with chat history in hour, day, week, month, and all time.
+
+```bash
+$ python chatgpt.py --mode export
+```
+
 # Requirements
 
 Only tested on macOS, with

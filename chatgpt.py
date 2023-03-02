@@ -4,6 +4,8 @@ import json
 import csv
 import argparse
 
+# $0.002 per 1k tokens
+TOKEN_COST = 0.002 / 1000
 DEFAULT_CHAT_MODEL = "gpt-3.5-turbo"
 FAKE_RESPONSE = {
     "choices": [
@@ -26,6 +28,24 @@ FAKE_RESPONSE = {
         "total_tokens": 220
     }
 }
+
+
+def str2date(s):
+    if s == None:
+        return None
+    else:
+        # convert ("2021-01-01", "h", "d", "w", "m") to timestamp
+        if s == "h":
+            s = "datetime('now', '-1 Hour')"
+        elif s == "d":
+            s = "date('now')"
+        elif s == "w":
+            s = "date('now', '-7 days')"
+        elif s == "m":
+            s = "date('now', '-30 days')"
+        else:
+            s = "date('" + s + "')"
+        return s
 
 
 class ChatGPT:
@@ -101,25 +121,42 @@ class ChatGPT:
         json_response = json.dumps(response)
         self.c.execute("INSERT INTO raw_chat VALUES (?)", (json_response,))
 
-    def get_total_tokens(self, today=False):
-        if today:
-            # get total_tokens for today
-            self.c.execute("SELECT SUM(total_tokens) FROM chat WHERE timestamp > date('now')")
-        else:
-            # get total_tokens for all the previous chats
+    def get_total_tokens(self, since=None):
+        # get the total number of tokens used starting from a certain timestamp
+        if since == None:
             self.c.execute("SELECT SUM(total_tokens) FROM chat")
+        else:
+            since = str2date(since)
+            self.c.execute("SELECT SUM(total_tokens) FROM chat WHERE DATETIME(timestamp, 'unixepoch') > " + since)
         total_tokens = self.c.fetchone()[0]
         return total_tokens
+
+    def print_total_bill(self):
+        # print the total bill (in dollars) for the chat API
+        # by this hour, today, this week, this month, and all time
+        total_tokens = [self.get_total_tokens(since) for since in [None, "h", "d", "w", "m"]]
+        total_dollars = [tokens * TOKEN_COST for tokens in total_tokens]
+        print("Total bill (in dollars) for the chat API:")
+        print("This hour: " + str(total_dollars[1]))
+        print("Today: " + str(total_dollars[2]))
+        print("This week: " + str(total_dollars[3]))
+        print("This month: " + str(total_dollars[4]))
+        print("All time: " + str(total_dollars[0]))
 
     def clear_chat_history(self):
         # clear the chat history
         self.c.execute("DELETE FROM chat")
         self.c.execute("DELETE FROM raw_chat")
 
-    def export_chat_history(self):
+    def export_chat_history(self, since=None):
         # export the chat history to a csv file
-        self.c.execute("SELECT * FROM chat")
-        with open('chat_history.csv', 'w') as f:
+        if since == None:
+            self.c.execute("SELECT * FROM chat")
+        else:
+            date = str2date(since)
+            self.c.execute("SELECT * FROM chat WHERE DATETIME(timestamp, 'unixepoch') > " + date)
+        file_suffix = since if since != None else "all"
+        with open('chat_history_' + file_suffix + '.csv', 'w') as f:
             writer = csv.writer(f)
             writer.writerow([i[0] for i in self.c.description])
             writer.writerows(self.c)
@@ -158,9 +195,22 @@ def main_one_shot(prompt, type, debug=False):
     chatgpt.close()
 
 
+def main_export():
+    chatgpt = ChatGPT()
+    for since in [None, "h", "d", "w", "m"]:
+        chatgpt.export_chat_history(since)
+    chatgpt.close()
+
+
+def main_bill():
+    chatgpt = ChatGPT()
+    chatgpt.print_total_bill()
+    chatgpt.close()
+
+
 if __name__ == "__main__":
     argparser = argparse.ArgumentParser()
-    argparser.add_argument('--mode', type=str, default='interactive', help='interactive or oneshot')
+    argparser.add_argument('--mode', type=str, default='interactive', help='interactive, oneshot, export, or bill')
     argparser.add_argument('--debug', action='store_true', help='use fake response for debugging')
     argparser.add_argument('--prompt', type=str, default='', help='prompt for oneshot mode')
     argparser.add_argument('--type', type=str, default='chat', help='type of one shot mode (chat, revise, or search)')
@@ -171,3 +221,7 @@ if __name__ == "__main__":
     elif args.mode == 'oneshot':
         assert args.prompt != '', "Please provide a prompt for oneshot mode"
         main_one_shot(args.prompt, args.type, args.debug)
+    elif args.mode == 'export':
+        main_export()
+    elif args.mode == 'bill':
+        main_bill()
