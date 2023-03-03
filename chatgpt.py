@@ -72,7 +72,7 @@ class ChatGPT:
         # System instructions are currently global for all sessions
         # TODO: add your own system instructions here
         self.system_instructions = [
-            {"role": "system", "content": "You directly answer questions that you are confident about, and when you are not sure, you say 'I do not know' or ask the user more questions to narrow down the scope. You don't need to be conservative, just be helpful. If you are asked about abstract concepts, you try to include concrete examples."},
+            {"role": "system", "content": "You are a confident, helpful, friendly assistant providing detailed (often multi-paragraphs) answers to questions from the users. If you are asked about abstract concepts, you try to include detailed, concrete examples."},
             ]
 
     def _init_db(self):
