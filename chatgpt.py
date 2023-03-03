@@ -72,7 +72,7 @@ class ChatGPT:
         # System instructions are currently global for all sessions
         # TODO: add your own system instructions here
         self.system_instructions = [
-            # {"role": "system", "content": "You are a helpful assistant."},
+            {"role": "system", "content": "You are a helpful AI assistant. You directly answer questions that you are confident about, and when you are not sure, you say 'I do not know' or ask the user more questions to narrow down the scope. You don't need to be conservative, just be helpful. If you are asked about abstract concepts, you try to include concrete examples."},
             ]
 
     def _init_db(self):
@@ -165,7 +165,7 @@ class ChatGPT:
         else:
             templates = {
                 "chat": prompt,
-                "revise": "Please revise the following paragraph to improve the flow and fix any grammatical errors, typos, etc., without changing the meaning. Only return the revised texts.\n\n" + prompt,
+                "revise": "Fix any grammatical errors, typos, etc., without changing the meaning. Don't change wording if not necessary. Directly return the revised paragraphs.\n\n" + prompt,
                 "search": "Tell me what you know about \"" + prompt + "\"?",
             }
 
@@ -184,7 +184,7 @@ class ChatGPT:
             
             res = openai.ChatCompletion.create(
                 model=DEFAULT_CHAT_MODEL,
-                messages=self.system_instructions + self.session_history + [{"role": "user", "content": revised_prompt}]
+                messages=self.system_instructions if type != 'revise' else [] + self.session_history + [{"role": "user", "content": revised_prompt}]
             )
 
         return res, revised_prompt
