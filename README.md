@@ -56,4 +56,6 @@ Download the [Workflow](https://github.com/sanxing-chen/cai/raw/main/cai.alfredw
 # Alfred Demo
 With a simple Alfred [Workflow](https://github.com/sanxing-chen/cai/raw/main/cai.alfredworkflow) (Keyword -> Run Script) set up, you can do this
 
+https://user-images.githubusercontent.com/18565449/222794526-6a3e07e7-c680-4859-a9c7-0cb765c5a894.mov
+
 https://user-images.githubusercontent.com/18565449/222528490-68269587-ee49-45a9-97bd-2256e60c169f.mov
