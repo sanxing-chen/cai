@@ -64,9 +64,17 @@ class ChatGPT:
             self.new_session()
         else:
             self._print_session_history()
+        
+        # System instructions are currently global for all sessions
+        # TODO: add your own system instructions here
+        self.system_instructions = [
+            # {"role": "system", "content": "You are a helpful assistant."},
+            ]
 
     def _init_db(self):
-        # use chat.db to store chat history
+        """
+        initialize the database, create tables if they don't exist
+        """
         conn = sqlite3.connect('chat.db')
         self.c = conn.cursor()
 
@@ -143,38 +151,35 @@ class ChatGPT:
             self.session_history = []
 
     def get_response_by_type(self, prompt, type="chat"):
+        """
+        get the response from the API, given the prompt and the type of the prompt.
+        """
         if self.debug:
             revised_prompt = "[DEBUG] " + prompt
             res = FAKE_RESPONSE
-        elif type == "ctx_chat":
-            revised_prompt = prompt
+        else:
+            templates = {
+                "chat": prompt,
+                "revise": "Please revise the following paragraph to improve the flow and fix any grammatical errors, typos, etc., without changing the meaning. Only return the revised texts.\n\n" + prompt,
+                "search": "Tell me what you know about \"" + prompt + "\"?",
+            }
+
+            type = type.lower()
+            ctx = type.startswith("ctx_")
+            if ctx:
+                type = type[4:]
+            elif len(self.session_history) > 0:
+                # if the prompt is not a context prompt, and the session history is not empty, start a new session
+                self.new_session()
+            
+            if type not in templates:
+                raise ValueError("Invalid type: " + type)
+            else:
+                revised_prompt = templates[type]
+            
             res = openai.ChatCompletion.create(
                 model=DEFAULT_CHAT_MODEL,
-                messages=self.session_history + [{"role": "user", "content": revised_prompt}]
-            )
-        elif type == "chat":
-            revised_prompt = prompt
-            res = openai.ChatCompletion.create(
-                model=DEFAULT_CHAT_MODEL,
-                messages=[{"role": "user", "content": revised_prompt}]
-            )
-        elif type == "revise":
-            revised_prompt = "Please revise the following paragraph to improve the flow and fix any grammatical errors, typos, etc., without changing the meaning. Only return the revised texts.\n\n" + prompt
-            res = openai.ChatCompletion.create(
-                model=DEFAULT_CHAT_MODEL,
-                messages=[
-                    # {"role": "system", "content": "You are a helpful assistant."},
-                    {"role": "user", "content": revised_prompt},
-                ]
-            )
-        elif type == "search":
-            revised_prompt = "Tell me what you know about \"" + prompt + "\"?"
-            res = openai.ChatCompletion.create(
-                model=DEFAULT_CHAT_MODEL,
-                messages=[
-                    # {"role": "system", "content": "You are a helpful assistant."},
-                    {"role": "user", "content": revised_prompt},
-                ]
+                messages=self.system_instructions + self.session_history + [{"role": "user", "content": revised_prompt}]
             )
 
         return res, revised_prompt
@@ -216,6 +221,8 @@ class ChatGPT:
             since = str2date(since)
             self.c.execute("SELECT SUM(total_tokens) FROM chat WHERE DATETIME(timestamp, 'unixepoch') > " + since)
         total_tokens = self.c.fetchone()[0]
+        if total_tokens == None:
+            total_tokens = 0
         return total_tokens
 
     def print_total_bill(self):
