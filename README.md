@@ -39,14 +39,21 @@ You can export the database to csv files with chat history in hour, day, week, m
 $ python chatgpt.py --mode export
 ```
 
-# Requirements
+# Setup and Requirements
 
-Only tested on macOS, with
-- Python 3.8
-- sqlite3
-- openai
+Only tested on macOS
+1. `pip install openai`
+2. Correct `OPENAI_API_KEY` environment variable set, get it from [here](https://platform.openai.com/account/api-keys). You should have a paid account to use the API.
+
+## Extra Setup for Alfred Workflow
+
+Download the [Workflow](https://github.com/sanxing-chen/cai/raw/main/cai.alfredworkflow) and import it to Alfred.
+
+1. Make sure you can run `run.sh` from the terminal
+2. Set `OPENAI_API_KEY` and `CAI_PATH` (path to the repo) in Alfred Workflow (Alfred does **not** load environment variables from `.bashrc` or `.zshrc`)
+3. Replace the `python` (and `code`) command in `run.sh` with the absolute path to your python executable, e.g. `/usr/local/bin/python3.8`, obtained by `which python` in the terminal
 
 # Alfred Demo
-With a simple Alfred Workflow (Keyword -> Run Script) set up, you can do this
+With a simple Alfred [Workflow](https://github.com/sanxing-chen/cai/raw/main/cai.alfredworkflow) (Keyword -> Run Script) set up, you can do this
 
 https://user-images.githubusercontent.com/18565449/222528490-68269587-ee49-45a9-97bd-2256e60c169f.mov

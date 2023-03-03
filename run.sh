@@ -1,12 +1,21 @@
 #!/bin/bash
 IFS=
-# For alfred to work, you need to set the following environment variables here:
+# You need to set the following environment variables here or somewhere else like Alfred
 # export OPENAI_API_KEY=
-# cd <project_path>
-# make sure the right version of python (with dependencies) is used
+
+SCRIPTPATH="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
+cd "$SCRIPTPATH"
 
 # get type from command line argument
 type=$1
+
+# if type=bill
+if [ "$type" = "bill" ]; then
+    response="$(python chatgpt.py --mode bill)"
+    echo $response
+    exit
+fi
+
 # get prompt from command line argument
 prompt=$2
 # if no command line argument, get prompt from clipboard
