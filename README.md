@@ -6,7 +6,7 @@ Trivial implementation of a ChatGPT interface in shell, mainly for personal use 
 
 # Usage
 
-Basic usage is with the `chatgpt.py` script. You can run it in interactive mode (multiple rounds of conversation), or in oneshot mode (one round of conversation).
+Basic usage is with the `chatgpt.py` script. You can run it in interactive mode (multiple rounds of conversation), or in oneshot mode (one round of conversation w/ or w/o history).
 ```bash
 $ python chatgpt.py --mode interactive # interactive mode, use "!help" for help
 $ python chatgpt.py --mode oneshot --type chat --prompt "Who are you? What are you doing here?"
@@ -33,7 +33,7 @@ You can view bill in hour, day, week, month, and all time.
 $ python chatgpt.py --mode bill
 ```
 
-You can export the database to csv files with chat history in hour, day, week, month, and all time.
+You can export the database to csv/markdown files with chat history in hour, day, week, month, and all time.
 
 ```bash
 $ python chatgpt.py --mode export
