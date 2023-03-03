@@ -6,10 +6,22 @@ Trivial implementation of a ChatGPT interface in shell, mainly for personal use 
 
 # Usage
 
+Basic usage is with the `chatgpt.py` script. You can run it in interactive mode (multiple rounds of conversation), or in oneshot mode (one round of conversation).
+```bash
+$ python chatgpt.py --mode interactive # interactive mode, use "!help" for help
+$ python chatgpt.py --mode oneshot --type chat --prompt "Who are you? What are you doing here?"
+$ python chatgpt.py --mode oneshot --type search --prompt "Best resorts in the world"
+```
+
+If you use macOS with vscode, the simpler `run.sh` script is recommended for oneshot interaction.
+Results will be copied to clipboard and shown in vscode automatically.
+In one-shot mode, only `ctx_chat` considers the previous context, which is suitable for follow-up questions.
 ```bash
 $ ./run.sh chat "Who are you? What are you doing here?"
 $ ./run.sh search "Best resorts in the world"
-# only in macOS, copy "I don't konw waht I am talking about" to clipboard
+$ ./run.sh ctx_chat "Talk about one of them in detail." # follow up with the previous context
+
+# copy "I don't konw waht I am talking about" to clipboard, then
 $ ./run.sh revise
 ```
 
