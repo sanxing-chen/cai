@@ -31,8 +31,14 @@ response="$(python chatgpt.py --mode oneshot --prompt "$prompt" --type $type)"
 echo $response | pbcopy
 
 # save prompt and response to two newly created files in /tmp
-echo $prompt > /tmp/prompt.txt
-echo $response > /tmp/response.txt
+echo $prompt > /tmp/prompt.md
+echo $response > /tmp/response.md
 
-# use vscode to diff the two files
-code --diff /tmp/prompt.txt /tmp/response.txt
+# for revise mode, use vscode to diff the two files
+if [ "$type" = "revise" ]; then
+    code --diff /tmp/prompt.md /tmp/response.md
+    exit
+fi
+
+# open the markdown file in vscode, use command + shift + v to preview
+code /tmp/response.md

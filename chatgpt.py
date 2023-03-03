@@ -3,6 +3,7 @@ import sqlite3
 import json
 import csv
 import argparse
+import os
 
 # $0.002 per 1k tokens
 TOKEN_COST = 0.002 / 1000
@@ -47,6 +48,9 @@ def str2date(s):
             s = "date('" + s + "')"
         return s
 
+def mdformater(role, content):
+    return f"### {role.upper()}\n{content.lstrip()}"
+
 
 class ChatGPT:
 
@@ -76,6 +80,7 @@ class ChatGPT:
         initialize the database, create tables if they don't exist
         """
         conn = sqlite3.connect('chat.db')
+        conn.row_factory = sqlite3.Row 
         self.c = conn.cursor()
 
         # create a table to save raw responses, if it doesn't exist
@@ -137,9 +142,9 @@ class ChatGPT:
         print the chat history of the current session
         """
         if len(self.session_history) > 0:
-            print("Session history:")
+            print("## Session history:")
             for i in range(len(self.session_history)):
-                print(self.session_history[i]["role"] + ": " + self.session_history[i]["content"].lstrip())
+                print(mdformater(self.session_history[i]["role"], self.session_history[i]["content"]))
 
     def new_session(self):
         """
@@ -244,6 +249,12 @@ class ChatGPT:
         self.c.execute("DELETE FROM raw_chat")
 
     def export_chat_history(self, since=None):
+        # create folders if they don't exist
+        if not os.path.exists("csv"):
+            os.makedirs("csv")
+        if not os.path.exists("txt"):
+            os.makedirs("txt")
+
         # export the chat history to a csv file
         if since == None:
             self.c.execute("SELECT * FROM chat")
@@ -251,10 +262,30 @@ class ChatGPT:
             date = str2date(since)
             self.c.execute("SELECT * FROM chat WHERE DATETIME(timestamp, 'unixepoch') > " + date)
         file_suffix = since if since != None else "all"
-        with open('chat_history_' + file_suffix + '.csv', 'w') as f:
+        with open('csv/chat_history_' + file_suffix + '.csv', 'w') as f:
             writer = csv.writer(f)
             writer.writerow([i[0] for i in self.c.description])
             writer.writerows(self.c)
+        
+        # export chat history by session id to a markdown file
+        if since == None:
+            self.c.execute("SELECT * FROM chat_session JOIN chat ON chat.id = chat_session.chat_id")
+        else:
+            date = str2date(since)
+            # join the chat and chat_session tables to get the timestamp of the earliest chat messages in the session
+            # keep only sessions that started after the specified date
+            self.c.execute("SELECT * FROM chat_session JOIN chat ON chat.id = chat_session.chat_id WHERE DATETIME(timestamp, 'unixepoch') > " + date)
+        with open('txt/chat_history_' + file_suffix + '.md', 'w') as f:
+            # write the chat history by session id to a markdown file
+            # each session is separated by a horizontal rule
+            session_id = None
+            for row in self.c:
+                if row['session_id'] != session_id:
+                    session_id = row['session_id']
+                    f.write("## Session " + str(session_id) + "\n\n")
+                f.write(mdformater("user", row['prompt']) + "\n")
+                f.write(mdformater("assistant", row['reply']) + "\n\n")
+
 
     def close(self):
         # save the changes
@@ -268,7 +299,7 @@ def main_interactive(debug=False):
     chatgpt = ChatGPT(True, debug)
     while True:
         try:
-            prompt = input("user: ")
+            prompt = input(mdformater("user", ""))
         except KeyboardInterrupt:
             print("Exiting...")
             break
@@ -300,7 +331,7 @@ def main_interactive(debug=False):
             print("Invalid command. Please try again.")
         else:
             response = chatgpt.get_chat_response(prompt, "ctx_chat")
-            print('assistant:', response)
+            print(mdformater("assistant", response))
 
     chatgpt.close()
 
@@ -310,8 +341,8 @@ def main_one_shot(prompt, type, debug=False):
                       debug=debug)
     response = chatgpt.get_chat_response(prompt, type)
     if type == "ctx_chat":
-        print('user:', chatgpt.session_history[-2]['content'])
-        print('assistant:', response.lstrip())
+        print(mdformater("user", chatgpt.session_history[-2]['content']))
+        print(mdformater("assistant", response))
     else:
         print(response.lstrip())
     chatgpt.close()
