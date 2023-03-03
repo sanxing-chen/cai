@@ -284,6 +284,7 @@ def main_interactive(debug=False):
             if prompt == "!help":
                 print("Available commands:")
                 print("!exit: exit the program")
+                print("!new or !clear: start a new session, by default the assistant keeps the previous session's context")
                 print("!cleandb: clear the chat history in the database")
                 print("!export: export the chat history to a csv file")
                 print("!bill: print the total bill (in dollars) for the chat API")
@@ -305,7 +306,7 @@ def main_one_shot(prompt, type, debug=False):
         print('user:', chatgpt.session_history[-2]['content'])
         print('assistant:', response.lstrip())
     else:
-        print(response)
+        print(response.lstrip())
     chatgpt.close()
 
 
