@@ -49,7 +49,7 @@ def str2date(s):
         return s
 
 def mdformater(role, content):
-    return f"### {role.upper()}\n{content.lstrip()}"
+    return f"### {role.upper()}\n{content.strip()}\n"
 
 
 class ChatGPT:
@@ -165,7 +165,7 @@ class ChatGPT:
         else:
             templates = {
                 "chat": prompt,
-                "revise": "Fix any grammatical errors, typos, etc., without changing the meaning. Don't change wording if not necessary. Directly return the revised paragraphs.\n\n" + prompt,
+                "revise": "Fix any grammatical errors, typos, etc., without changing the meaning. Use the present tense. Don't change wording if not necessary. Directly return the revised paragraphs.\n\n" + prompt,
                 "search": "Tell me what you know about \"" + prompt + "\"?",
             }
 
@@ -340,11 +340,11 @@ def main_one_shot(prompt, type, debug=False):
     chatgpt = ChatGPT(True if type == "ctx_chat" else False,
                       debug=debug)
     response = chatgpt.get_chat_response(prompt, type)
-    if type == "ctx_chat":
+    if type == "revise":
+        print(response.lstrip())
+    else:
         print(mdformater("user", chatgpt.session_history[-2]['content']))
         print(mdformater("assistant", response))
-    else:
-        print(response.lstrip())
     chatgpt.close()
 
 
