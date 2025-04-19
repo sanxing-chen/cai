@@ -7,7 +7,8 @@ import os
 
 # $0.002 per 1k tokens
 TOKEN_COST = 0.002 / 1000
-DEFAULT_CHAT_MODEL = "gpt-3.5-turbo"
+# DEFAULT_CHAT_MODEL = "gpt-4"
+DEFAULT_CHAT_MODEL = "gpt-4o-mini"
 FAKE_RESPONSE = {
     "choices": [
                 {
@@ -165,7 +166,7 @@ class ChatGPT:
         else:
             templates = {
                 "chat": prompt,
-                "revise": "Fix any grammatical errors, typos, etc., without changing the meaning. Use the present tense. Don't change wording if not necessary. Directly return the revised paragraphs.\n\n" + prompt,
+                "revise": "Fix any grammatical errors, typos, etc., without changing the meaning. Use the present tense or the present perfect tense. Don't change wording unless it's too casual. Directly return the revised paragraphs.\n\n" + prompt,
                 "search": "Tell me what you know about \"" + prompt + "\"?",
             }
 
