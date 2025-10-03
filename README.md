@@ -53,6 +53,9 @@ Download the [Workflow](https://github.com/sanxing-chen/cai/raw/main/cai.alfredw
 2. Set `OPENAI_API_KEY` and `CAI_PATH` (path to the repo) in Alfred Workflow (Alfred does **not** load environment variables from `.bashrc` or `.zshrc`)
 3. Replace the `python` (and `code`) command in `run.sh` with the absolute path to your python executable, e.g. `/usr/local/bin/python3.8`, obtained by `which python` in the terminal
 
+The `run.sh` script directly open the markdown file in vscode, you can use command + shift + v to open the built-in preview.
+I find it more convenient to set the built-in preview as default editor for "*.md" files in vscode.
+
 # Alfred Demo
 With a simple Alfred [Workflow](https://github.com/sanxing-chen/cai/raw/main/cai.alfredworkflow) (Keyword -> Run Script) set up, you can do this
 

@@ -4,33 +4,12 @@ import json
 import csv
 import argparse
 import os
+import requests
 
 # $0.002 per 1k tokens
 TOKEN_COST = 0.002 / 1000
-# DEFAULT_CHAT_MODEL = "gpt-4"
-DEFAULT_CHAT_MODEL = "gpt-4o-mini"
-FAKE_RESPONSE = {
-    "choices": [
-                {
-                    "finish_reason": "stop",
-                    "index": 0,
-                    "message": {
-                        "content": "\n\nAhoy, me hearties! Listen up, fer I've got news that'll make ye cheer like a salty dog with a bone. There be an API known as ChatGPT that's gonna change the way ye communicate with yer mates online.\n\nWith the ChatGPT API, ye can send and receive text messages like ye be chattin' with another pirate right next to ye. And the best part be that ye don't even need to know how to code like Davy Jones. It be easy to use, and ye can integrate it with yer website or app in no time.\n\nThe ChatGPT API be like havin' yer own parrot that talks with ye! Whether ye be runnin' an online store or a gaming app, ChatGPT be a lifesaver fer when ye wanna communicate with yer customers or players.\n\nSo drop anchor, and give ChatGPT a try. Ye won't be disappointed, me hearties! Arrr!",
-                        "role": "assistant"
-                    }
-                }
-    ],
-    "created": 1677772996,
-    "id": "chatcmpl-6pfgiYYMyoA9DzTJDORtLjaicIj6w",
-    "model": "gpt-3.5-turbo-0301",
-    "object": "chat.completion",
-    "usage": {
-        "completion_tokens": 197,
-        "prompt_tokens": 23,
-        "total_tokens": 220
-    }
-}
-
+DEFAULT_CHAT_MODEL = "GPT 4.1 Mini"
+openai.api_base = "https://litellm.oit.duke.edu/v1"
 
 def str2date(s):
     if s == None:
@@ -160,33 +139,29 @@ class ChatGPT:
         """
         get the response from the API, given the prompt and the type of the prompt.
         """
-        if self.debug:
-            revised_prompt = "[DEBUG] " + prompt
-            res = FAKE_RESPONSE
-        else:
-            templates = {
-                "chat": prompt,
-                "revise": "Fix any grammatical errors, typos, etc., without changing the meaning. Use the present tense or the present perfect tense. Don't change wording unless it's too casual. Directly return the revised paragraphs.\n\n" + prompt,
-                "search": "Tell me what you know about \"" + prompt + "\"?",
-            }
+        templates = {
+            "chat": prompt,
+            "revise": "Fix any grammatical errors, typos, etc., improve fluency without changing the meaning. Use the present tense or the present perfect tense. Don't change wording unless it's too casual. Directly return the revised paragraphs.\n\n\"" + prompt + "\"",
+            "search": "Tell me what you know about \"" + prompt + "\"?",
+        }
 
-            type = type.lower()
-            ctx = type.startswith("ctx_")
-            if ctx:
-                type = type[4:]
-            elif len(self.session_history) > 0:
-                # if the prompt is not a context prompt, and the session history is not empty, start a new session
-                self.new_session()
-            
-            if type not in templates:
-                raise ValueError("Invalid type: " + type)
-            else:
-                revised_prompt = templates[type]
-            
-            res = openai.ChatCompletion.create(
-                model=DEFAULT_CHAT_MODEL,
-                messages=(self.system_instructions if type != 'revise' else []) + self.session_history + [{"role": "user", "content": revised_prompt}]
-            )
+        type = type.lower()
+        ctx = type.startswith("ctx_")
+        if ctx:
+            type = type[4:]
+        elif len(self.session_history) > 0:
+            # if the prompt is not a context prompt, and the session history is not empty, start a new session
+            self.new_session()
+        
+        if type not in templates:
+            raise ValueError("Invalid type: " + type)
+        else:
+            revised_prompt = templates[type]
+        
+        res = openai.ChatCompletion.create(
+            model=DEFAULT_CHAT_MODEL,
+            messages=(self.system_instructions if type != 'revise' else []) + self.session_history + [{"role": "user", "content": revised_prompt}]
+        )
 
         return res, revised_prompt
 
